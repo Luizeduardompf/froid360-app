@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev  # Usa estágio dev com deps instaladas
+    image: froid360-nextjs:1.0
+    container_name: froid360-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - froid360-volume:/app/.next  # Persiste builds para hot-reload
+      - ./src:/app/src  # Hot-reload código App Router
+      - .:/app  # Monta raiz para package.json se rebuild
+    env_file:
+      - .env.local  # Supabase vars
+    stdin_open: true  # Para exec commands
+    tty: true  # Colored logs
+    # Sem command: usa CMD do estágio dev
+volumes:
+  froid360-volume:
