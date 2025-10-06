@@ -99,6 +99,7 @@ docker-compose down -v && docker-compose up --build
 "builds": [{ "src": "package.json", "use": "@vercel/nextjs" }],
 "routes": [{ "src": "/(.*)", "dest": "/" }]
 }
+
 Suporte nativo a App Router/Turbopack/Supabase. Commit/push.
 
 ## 📁 Project Structure
