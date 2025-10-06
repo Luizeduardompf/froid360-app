@@ -5,7 +5,7 @@
 [![Docker](https://img.shields.io/badge/Docker-20-alpine-blue?style=flat&logo=docker)](https://www.docker.com)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-purple?style=flat&logo=supabase)](https://supabase.com)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-blue?style=flat&logo=tailwind)](https://tailwindcss.com)
-
+ 
 Froid360 App é um projeto full-stack baseado em Next.js 15 com App Router e TypeScript, projetado para desenvolvimento isolado via Docker no Mac M4 (Apple Silicon). Ele integra Supabase para banco de dados cloud (PostgreSQL, autenticação, realtime), TailwindCSS e shadcn/ui para UI acessível/responsiva, com estrutura organizada em src/ (app/, components/, lib/, types/, styles/) e configurações para ESLint, Prettier, acessibilidade ARIA e segurança via env vars/headers. O setup minimiza instalações locais (apenas Docker Desktop + Git), rodando Node.js 20, npm e Next.js em containers ARM64 nativos, com hot-reload e Turbopack para dev rápido.
 
 ## ✨ Features
