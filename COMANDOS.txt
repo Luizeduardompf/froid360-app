@@ -1,15 +1,31 @@
+------------
+GITHUB - luizeduardompf
+https://github.com/Luizeduardompf/froid360-app
 
 
+
+------------
+VERCEL - luizeduardompf
+https://vercel.com/luizeduardompf-gmailcoms-projects/froid360-app
+
+
+------------
+SUPABASE - luizeduardompf
+https://supabase.com/dashboard/project/dnulseonlnjpmvunczko
+
+
+------------
 VERCEL - PROD (Aliases)
     https://froid360-app.vercel.app/
 
 
 
+------------
 ENVIAR PRO GITHUB
     git add . && git commit -m "ajustes" && git push
 
 
-
+------------
 DEPLOY PARA O VERCEL - PROD:
     docker-compose exec app vercel login (se precisar)
     docker-compose exec app vercel --prod
