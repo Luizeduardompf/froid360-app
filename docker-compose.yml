@@ -3,24 +3,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: dev  # Usa estágio dev com deps instaladas
+      target: dev
     image: froid360-nextjs:1.0
     container_name: froid360-app
-    working_dir: /app  # Adicionado: Garante exec em /app root (fixa deploy path)
+    working_dir: /app
     ports:
       - "3000:3000"
     volumes:
-      - froid360-volume:/app/.next  # Persiste builds para hot-reload
-      - ./src:/app/src  # Hot-reload código App Router
-      - .:/app  # Monta raiz para package.json se rebuild
-      - ~/.vercel:/root/.vercel  # Persiste Vercel tokens/auth
+      - froid360-volume:/app/.next
+      - ./src:/app/src
+      - ./package*.json:/app/package*.json
+      - /app/node_modules
     env_file:
-      - .env.local  # Supabase vars
+      - .env.local
     environment:
-      - PATH=/app/node_modules/.bin:/usr/local/bin:$PATH  # npx vercel no PATH
-    stdin_open: true  # Para exec commands
-    tty: true  # Colored logs
-    command: npm run dev  # Adicionado: Explicit CMD (usa Turbopack; opcional se Dockerfile tem)
+      - PATH=/app/node_modules/.bin:/usr/local/bin:$PATH
+    stdin_open: true
+    tty: true
+    command: npm run dev
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   froid360-volume:

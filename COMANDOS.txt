@@ -1,0 +1,9 @@
+
+ENVIAR PRO GITHUB
+    git add . && git commit -m "ajustes" && git push
+
+
+
+DEPLOY PARA O VERCEL - PROD:
+    docker-compose exec app vercel --prod
+

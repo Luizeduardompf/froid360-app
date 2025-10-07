@@ -1,7 +1,19 @@
+// src/lib/supabase.ts
 import { createBrowserClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Browser Client (para 'use client' components ou client-side)
+// Type para CookieOptions (de Next.js cookies API)
+type CookieOptions = {
+  name: string;
+  value: string;
+  maxAge?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  path?: string;
+  sameSite?: 'lax' | 'strict' | 'none';
+};
+
+// Browser Client (para 'use client' components)
 export const createClientComponentClient = () => createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -16,10 +28,10 @@ export const createClient = () => createBrowserClient(
       get(name: string) {
         return cookies().get(name)?.value;
       },
-      set(name: string, value: string, options: any) {
+      set(name: string, value: string, options?: CookieOptions) {  // Fix: CookieOptions em vez de any
         cookies().set({ name, value, ...options });
       },
-      remove(name: string, options: any) {
+      remove(name: string, options?: CookieOptions) {  // Fix: CookieOptions em vez de any
         cookies().set({ name, value: '', ...options });
       },
     },
