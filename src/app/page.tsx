@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <main className={cn('flex min-h-screen flex-col items-center justify-center p-24 space-y-8')}>
       <h1 className="text-4xl font-bold">Froid360 App Live!</h1>
-      <p className="text-lg">Get started by editing src/app/page.tsx - LUIZ</p>
+      <p className="text-lg">Get started by editing src/app/page.tsx - LUIZ 2</p>
       <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Dashboard Inicial</CardTitle>
