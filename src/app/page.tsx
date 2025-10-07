@@ -1,4 +1,4 @@
-import { createServerComponentClient } from '@/lib/supabase';  // Server client async
+import { createServerComponentClient } from '@/lib/supabase';  // Server client sync
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,7 @@ interface UserTest {
 }
 
 export default async function Home() {
-  const supabase = await createServerComponentClient();  // Await para async server client (cookies)
+  const supabase = createServerComponentClient();  // Sync server client (cookies getAll/setAll)
   const { data: usersTest, error } = await supabase
     .from('users_test')
     .select('*')

@@ -1,43 +1,37 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import type { Cookie } from 'next/headers';  // Type para getAll/setAll
 
-type CookieOptions = {
-  name: string;
-  value: string;
-  maxAge?: number;
-  httpOnly?: boolean;
-  secure?: boolean;
-  path?: string;
-  sameSite?: 'lax' | 'strict' | 'none';
-};
-
-// Client para componentes 'use client' (browser-side, sem cookies custom)
+// Client para componentes 'use client' (browser-side, sem cookies server)
 export const createClientComponentClient = () => createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Server client para RSC/Server Actions (com cookies async de next/headers)
-export const createServerComponentClient = async () => createServerClient(
+// Server client para RSC/Server Actions (cookies getAll/setAll de next/headers)
+export const createServerComponentClient = () => createServerClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     cookies: {
-      async get(name: string) {
-        const c = await cookies();
-        return c.get(name)?.value;
+      getAll() {
+        return cookies().getAll() as Cookie[];  // Typed array Cookie[] (Supabase usa para hints/session)
       },
-      async getAll() {
-        const c = await cookies();
-        return c.getAll();
-      },
-      async set(name: string, value: string, options?: CookieOptions) {
-        const c = await cookies();
-        c.set({ name, value, ...options });
-      },
-      async remove(name: string, options?: CookieOptions) {
-        const c = await cookies();
-        c.set({ name, value: '', ...options, maxAge: 0 });
+      setAll(cookiesToSet: Cookie[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, ...options }) => {
+            if (options.maxAge === 0) {
+              // Remove (expira)
+              cookies().delete(name);
+            } else {
+              // Set
+              cookies().set(name, value, options);
+            }
+          });
+        } catch (error) {
+          // Ignora se chamado de Server Component (middleware refresh session)
+          console.warn('Cookies set ignored in Server Component:', error);
+        }
       },
     },
   }
