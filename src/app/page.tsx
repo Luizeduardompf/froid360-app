@@ -1,4 +1,4 @@
-import { createServerComponentClient } from '@/lib/supabase';  // Server client sync
+import { createServerComponentClient } from '@/lib/supabase';  // Server client async
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,7 @@ interface UserTest {
 }
 
 export default async function Home() {
-  const supabase = createServerComponentClient();  // Sync server client (cookies getAll/setAll)
+  const supabase = await createServerComponentClient();  // Async server client (Next.js 15)
   const { data: usersTest, error } = await supabase
     .from('users_test')
     .select('*')
@@ -19,7 +19,7 @@ export default async function Home() {
     .limit(5);  // Query simples (tabela test)
 
   if (error) {
-    console.error('Supabase error:', error);  // Debug (remova prod)
+    console.error('Supabase error:', error);  // Debug (remova em prod)
     return <div>Error loading data</div>;
   }
 
@@ -30,11 +30,11 @@ export default async function Home() {
       <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Supabase Test</CardTitle>
-          <CardDescription>Query users_test table ({usersTest?.length || 0} rows).</CardDescription>
+          <CardDescription>Query users_test table ({(usersTest as UserTest[] | undefined)?.length || 0} rows).</CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {usersTest?.map((user: UserTest) => (
+            {(usersTest as UserTest[])?.map((user) => (
               <li key={user.id} className="text-sm">
                 {user.name} ({user.email}) - {new Date(user.created_at).toLocaleDateString('pt-BR')}
               </li>
