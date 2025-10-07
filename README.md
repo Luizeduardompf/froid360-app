@@ -25,7 +25,6 @@ O projeto suporta deploy serverless (Vercel) ou containerizado (Docker), com foc
 ## 🚀 Setup Instructions
 
 1. Clone o repositório:
-
 git clone https://github.com/luizeduardompf/froid360-app.git
 cd froid360-app
 
