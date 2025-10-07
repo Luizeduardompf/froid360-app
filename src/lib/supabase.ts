@@ -1,10 +1,27 @@
-import { createBrowserClient } from '@supabase/ssr';  // Correto para Next.js App Router
+import { createBrowserClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Browser Client (para 'use client' components ou client-side)
+export const createClientComponentClient = () => createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase env vars');
-}
-
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+// Server Client (para RSC/Server Actions, com cookies para session)
+export const createClient = () => createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    cookies: {
+      get(name: string) {
+        return cookies().get(name)?.value;
+      },
+      set(name: string, value: string, options: any) {
+        cookies().set({ name, value, ...options });
+      },
+      remove(name: string, options: any) {
+        cookies().set({ name, value: '', ...options });
+      },
+    },
+  }
+);
