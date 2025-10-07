@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase';  // Novo: Server client
+import { createServerComponentClient } from '@/lib/supabase';  // Server client async
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,7 @@ interface UserTest {
 }
 
 export default async function Home() {
-  const supabase = createClient();  // Server client para RSC
+  const supabase = await createServerComponentClient();  // Await para async server client (cookies)
   const { data: usersTest, error } = await supabase
     .from('users_test')
     .select('*')

@@ -1,8 +1,6 @@
-// src/lib/supabase.ts
-import { createBrowserClient } from '@supabase/ssr';
+import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Type para CookieOptions (de Next.js cookies API)
 type CookieOptions = {
   name: string;
   value: string;
@@ -13,26 +11,33 @@ type CookieOptions = {
   sameSite?: 'lax' | 'strict' | 'none';
 };
 
-// Browser Client (para 'use client' components)
+// Client para componentes 'use client' (browser-side, sem cookies custom)
 export const createClientComponentClient = () => createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Server Client (para RSC/Server Actions, com cookies para session)
-export const createClient = () => createBrowserClient(
+// Server client para RSC/Server Actions (com cookies async de next/headers)
+export const createServerComponentClient = async () => createServerClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     cookies: {
-      get(name: string) {
-        return cookies().get(name)?.value;
+      async get(name: string) {
+        const c = await cookies();
+        return c.get(name)?.value;
       },
-      set(name: string, value: string, options?: CookieOptions) {  // Fix: CookieOptions em vez de any
-        cookies().set({ name, value, ...options });
+      async getAll() {
+        const c = await cookies();
+        return c.getAll();
       },
-      remove(name: string, options?: CookieOptions) {  // Fix: CookieOptions em vez de any
-        cookies().set({ name, value: '', ...options });
+      async set(name: string, value: string, options?: CookieOptions) {
+        const c = await cookies();
+        c.set({ name, value, ...options });
+      },
+      async remove(name: string, options?: CookieOptions) {
+        const c = await cookies();
+        c.set({ name, value: '', ...options, maxAge: 0 });
       },
     },
   }

@@ -1,9 +1,16 @@
 
+
+VERCEL - PROD (Aliases)
+    https://froid360-app.vercel.app/
+
+
+
 ENVIAR PRO GITHUB
     git add . && git commit -m "ajustes" && git push
 
 
 
 DEPLOY PARA O VERCEL - PROD:
+    docker-compose exec app vercel login (se precisar)
     docker-compose exec app vercel --prod
 
