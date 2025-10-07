@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';  // Tailwind + shadcn styles
-import { ThemeProvider } from '@/components/providers/theme-provider';  // Client wrapper (crie se não feito)
-import { cn } from '@/lib/utils';  // shadcn cn helper (agora existe)
+import { ThemeProvider } from '@/components/providers/theme-provider';  // Client wrapper
+import { cn } from '@/lib/utils';  // shadcn cn helper
+import { SpeedInsightsComponent } from '@/components/insights/speed-insights';  // Novo: Speed Insights
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <SpeedInsightsComponent />
         </ThemeProvider>
       </body>
     </html>
