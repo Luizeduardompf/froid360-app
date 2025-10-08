@@ -1,4 +1,30 @@
 ------------
+COMO EXECUTAR NO VSCODE - LOCAL
+- Abre um terminal na pasta do projeto: froid
+    - Executa a montagem do docker:
+        - docker-compose down && docker-compose up -d --build  (retira o -d para fica ativo)
+
+- Abre outro terminal na pasta do projeto: froid
+    - Executar localmente:
+        - como esta montado, ja fica disponivel em:
+            - http://localhost:3000/ 
+    - Executar em producao no Vercel:
+        - Faz o push das alterações:
+            - git add . && git commit -m "TUDO OK" && git push
+        - Faz o deploy para o Vercel:
+            - Faz o login (se nao tiver):
+                -  docker-compose exec app vercel login 
+            - Faz o compile e o upload (ler direto do Repo no github)
+                - docker-compose exec app vercel --prod
+        - Fica disponivel em:
+            - Aliase:
+                - https://froid360-app.vercel.app/
+            - Se nao usar aliase, cuidado pois cada deploy cria uma nova url, deixando todo o historico de versões.
+
+
+
+
+------------
 GITHUB - luizeduardompf
 https://github.com/Luizeduardompf/froid360-app
 
@@ -19,6 +45,11 @@ VERCEL - PROD (Aliases)
     https://froid360-app.vercel.app/
 
 
+------------
+INICIAR O DOCKER
+    docker-compose down && docker-compose up --build
+    docker-compose down && docker-compose up -d --build (roda em background)
+
 
 ------------
 ENVIAR PRO GITHUB
@@ -30,3 +61,7 @@ DEPLOY PARA O VERCEL - PROD:
     docker-compose exec app vercel login (se precisar)
     docker-compose exec app vercel --prod
 
+
+------------
+VER SE O LINT ESTA TODO OK
+    docker-compose exec app npm run lint 
