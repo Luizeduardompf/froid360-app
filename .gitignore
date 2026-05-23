@@ -1,29 +1,33 @@
-# Next.js
-.next/
-out/
-.cache/
-.vercel/
-
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
 # Environment
-.env*.local
 .env
+.env.*
+!.env.example
 
-# IDEs
-.vscode/
+# Node
+node_modules/
+dist/
+build/
+.next/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# IDE
+.vscode/settings.json
 .idea/
 *.swp
 *.swo
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Tests
-coverage/
-.vercel
+# Temp
+*.log
+BLOCKED.md
+PLAN.md

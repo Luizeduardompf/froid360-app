@@ -1,0 +1,232 @@
+# =============================================================================
+# ai-agent.yml — Executa Claude Code para implementar a issue
+# Trigger: label 'ai-processing' adicionada a uma issue
+# =============================================================================
+name: AI Agent
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    # Só roda quando a label adicionada for exatamente 'ai-processing'
+    # e a issue não estiver bloqueada
+    if: |
+      github.event.label.name == 'ai-processing' &&
+      !contains(github.event.issue.labels.*.name, 'ai-blocked')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "Froid AI Agent"
+
+      - name: Criar branch para a issue
+        id: branch
+        run: |
+          ISSUE_NUM="${{ github.event.issue.number }}"
+          # Normaliza título para slug
+          SLUG=$(echo "${{ github.event.issue.title }}" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9]/-/g' \
+            | sed 's/--*/-/g' \
+            | sed 's/^-//' \
+            | sed 's/-$//' \
+            | cut -c1-50)
+          BRANCH="feat/issue-${ISSUE_NUM}-${SLUG}"
+          git checkout -b "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "issue_num=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Executar Claude Code
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Prompt injetado com contexto completo da issue
+          prompt: |
+            Você está implementando a seguinte issue do repositório Froid.app (sistema para Psicólogos):
+
+            **Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}**
+
+            ${{ github.event.issue.body }}
+
+            ---
+
+            **Instruções de implementação:**
+
+            1. Leia o contexto atual do projeto (arquivos existentes, README, CLAUDE.md se houver).
+            2. Planeje a implementação (crie um plano antes de codar).
+            3. Implemente de forma incremental e segura.
+            4. Escreva testes quando aplicável.
+            5. Garanta que nenhuma funcionalidade existente foi quebrada.
+            6. Faça commits semânticos: `feat(scope): descrição` ou `fix(scope): descrição`.
+            7. NÃO abra o PR — o workflow cuidará disso.
+
+            **Restrições:**
+            - Trabalhe apenas nos arquivos relevantes para esta issue.
+            - Prefira soluções simples e testáveis.
+            - Se encontrar ambiguidade, implemente a interpretação mais conservadora e documente a decisão no commit.
+            - Se algo for tecnicamente inviável ou arriscado, crie um arquivo `BLOCKED.md` explicando o motivo.
+
+      - name: Verificar se houve mudanças
+        id: changes
+        run: |
+          if git diff --quiet HEAD && git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git push origin "${{ steps.branch.outputs.branch }}"
+
+      - name: Verificar se está bloqueado
+        id: blocked
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          if [[ -f "BLOCKED.md" ]]; then
+            echo "is_blocked=true" >> "$GITHUB_OUTPUT"
+            echo "blocked_reason=$(cat BLOCKED.md)" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_blocked=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Abrir Pull Request
+        id: pr
+        if: |
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.blocked.outputs.is_blocked == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `feat: #${{ steps.branch.outputs.issue_num }} ${{ github.event.issue.title }}`,
+              head: '${{ steps.branch.outputs.branch }}',
+              base: 'main',
+              body: [
+                `Closes #${{ steps.branch.outputs.issue_num }}`,
+                '',
+                '## Implementação automática',
+                '',
+                'Este PR foi gerado automaticamente pelo Agente AI do Froid.app.',
+                '',
+                '### Checklist',
+                '- [ ] Revisar código gerado',
+                '- [ ] Validar testes',
+                '- [ ] Confirmar que não há regressões',
+                '',
+                '> ⚠️ Sempre revisar PRs gerados automaticamente antes de fazer merge.'
+              ].join('\n')
+            });
+            core.setOutput('pr_number', pr.data.number);
+            core.setOutput('pr_url', pr.data.html_url);
+
+      - name: Atualizar labels — sucesso
+        if: |
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.blocked.outputs.is_blocked == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Remove ai-processing, adiciona needs-review + ai-done
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              name: 'ai-processing'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              labels: ['needs-review', 'ai-done']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              body: [
+                '✅ **Implementação concluída.**',
+                '',
+                `PR aberto: ${{ steps.pr.outputs.pr_url }}`,
+                '',
+                'Aguardando revisão humana antes do merge.'
+              ].join('\n')
+            });
+
+      - name: Atualizar labels — bloqueado
+        if: steps.blocked.outputs.is_blocked == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              name: 'ai-processing'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              labels: ['ai-blocked']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              body: [
+                '⚠️ **Agente bloqueado — requer intervenção humana.**',
+                '',
+                '**Motivo:**',
+                '${{ steps.blocked.outputs.blocked_reason }}',
+                '',
+                'Resolva o bloqueio e remova a label `ai-blocked` para reprocessar.'
+              ].join('\n')
+            });
+
+      - name: Atualizar labels — sem mudanças
+        if: steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              name: 'ai-processing'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              labels: ['ai-blocked']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.branch.outputs.issue_num }},
+              body: '⚠️ **Agente não produziu mudanças.** Verifique se a issue está bem especificada.'
+            });

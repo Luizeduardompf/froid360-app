@@ -8,8 +8,16 @@ import { SpeedInsightsComponent } from '@/components/insights/speed-insights';  
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Froid360 App',
-  description: 'Full-stack app with Next.js, Supabase, and shadcn',
+  title: 'Froid.app — Sua clínica no bolso',
+  description: 'Gestão de pacientes e sessões para psicólogos',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
