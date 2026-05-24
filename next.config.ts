@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',  // Para Docker prod
+  // Vercel gerencia o output automaticamente — sem 'standalone'
   async headers() {
     return [
       {
@@ -8,6 +8,7 @@ const nextConfig = {
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Robots-Tag', value: 'noindex' }, // demo — não indexar
         ],
       },
     ];
