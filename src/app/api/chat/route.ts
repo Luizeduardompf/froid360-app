@@ -1,6 +1,17 @@
 import { streamText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { MOCK_PATIENTS, MOCK_SESSIONS } from '@/lib/mock-data';
+
+// Suporta OpenAI direto (sk-proj-...) ou OpenRouter (sk-or-v1-...)
+const isOpenRouter = process.env.OPENAI_API_KEY?.startsWith('sk-or-');
+const aiClient = createOpenAI({
+  baseURL: isOpenRouter ? 'https://openrouter.ai/api/v1' : undefined,
+  apiKey: process.env.OPENAI_API_KEY,
+  headers: isOpenRouter
+    ? { 'HTTP-Referer': 'https://froid-app.vercel.app', 'X-Title': 'Froid.app' }
+    : undefined,
+});
+const model = aiClient(isOpenRouter ? 'openai/gpt-4.1-nano' : 'gpt-4o-mini');
 
 export const runtime = 'edge';
 export const maxDuration = 30;
@@ -48,7 +59,7 @@ REGRAS IMPORTANTES:
 ${patientContext || 'Chat geral — nenhum paciente selecionado. Responda perguntas gerais sobre psicologia clínica.'}`;
 
     const result = streamText({
-      model: openai('gpt-4o-mini'),
+      model,
       system: systemPrompt,
       messages,
       maxTokens: 800,
